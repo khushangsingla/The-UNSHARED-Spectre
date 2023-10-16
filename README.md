@@ -1,14 +1,14 @@
 # cs683_project
 
-### <Project-Title>
+### The UNSHARED Spectre
 
 ### <Team-Name>
 
 | **Member Name** | **Member Roll No.** |
 | :-------------: | :-----------------: |
-| Hrishikesh      | 210050073           |
-| Khushang Singla | 210050085           |
-| Sankalan Baidya | 210050141           |
+| Hrishikesh      |     210050073       |
+| Khushang Singla |     210050085       |
+| Sankalan Baidya |     210050141       |
 
 <br/>
 
