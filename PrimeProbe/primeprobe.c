@@ -9,7 +9,7 @@
 
 #define VICTIM_ARRAY_SIZE 4096
 #define ATTACKER_ARRAY_SIZE 1024
-#define PRIMING_ITERS 10
+#define PRIMING_ITERS 100
 int cache_size,number_of_sets,number_of_ways,line_size;
 int temp;
 char* attacker_array;
@@ -137,7 +137,11 @@ int main(){
 
 	int n = 0xabc;
 	prime_cache_set(n);
-	temp = victim_array[((n>>6)<<6)];
+	temp = victim_array[(((n>>6)+1)<<6)];
 	long long times[8];
 	probe_asm(attacker_array, times, n);
+	for(int i=0;i<8;i++){
+		printf("%lld ",-1*times[i]);
+	}
+	printf("\n");
 }
