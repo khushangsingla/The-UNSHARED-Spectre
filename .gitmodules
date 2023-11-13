@@ -1,0 +1,3 @@
+[submodule "PrimeProbeSingleProcess/CacheSC"]
+	path = PrimeProbeSingleProcess/CacheSC
+	url = https://github.com/Miro-H/CacheSC.git
