@@ -1,13 +1,40 @@
-# The UNSHARED Spectre
+# cs683_project
 
-Course Project for CS683
+### The UNSHARED Spectre
 
-### Team Details
+### <Team-Name>
 
-| Name | Roll Number |
-| --- | --- |
-| Hrishikesh Jedhe Deshmukh | 210050073 |
-| Khushang Singla | 210050085 |
-| Sankalan Baidya | 210050141 |
-| Shubham Roy | 22D0378 |
+| **Member Name** | **Member Roll No.** |
+| :-------------: | :-----------------: |
+| Hrishikesh      |     210050073       |
+| Khushang Singla |     210050085       |
+| Sankalan Baidya |     210050141       |
 
+<br/>
+
+---
+
+### Proposal or Idea
+
+
+
+<br/>
+
+---
+
+### Steps to run the experiments
+
+`make`
+
+
+<br/>
+
+---
+
+### Conclusion
+
+
+
+<br/>
+
+---
