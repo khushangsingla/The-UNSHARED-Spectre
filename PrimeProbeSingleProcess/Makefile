@@ -52,5 +52,5 @@ rebuild: clean all
 clean:
 	rm -rf *.o $(OUT)
 
-$(OUT):
+$(OUT): %: %.c
 	$(CC) $(CFLAGS) -o $@ $(@:=.c) $(LDFLAGS) $(LDLIBS)
