@@ -54,6 +54,23 @@
 // local functions
 void usage(const char *prog);
 
+void copy_results_to_array(uint32_t *res, double* array ,uint32_t sample_cnt, uint32_t sets_per_sample)
+{
+
+
+
+        for (uint32_t i = 0; i < sample_cnt; ++i) {
+
+
+            for (uint32_t j = 0; j < sets_per_sample; ++j) {
+                array[j] = 1.0*(res[i * sets_per_sample + j] - array[j])/(i+1);
+            }
+
+        }
+
+
+}
+
 int main(int argc, char **argv) {
     uint32_t sample_cnt = -1;
 
