@@ -165,7 +165,18 @@ int main(int argc, char **argv) {
      */
     PRINT_LINE("Output cache attack data\n");
     print_results(res, sample_cnt, MSRMTS_PER_SAMPLE);
+    double* array = (double*)malloc(sizeof(double)*MSRMTS_PER_SAMPLE);
+    copy_results_to_array(res, array ,sample_cnt, MSRMTS_PER_SAMPLE);
 
+
+    //print array or do whatever you want
+
+    for (int i = 0; i < MSRMTS_PER_SAMPLE; i++)
+    {
+        printf("%f ",array[i]);
+    }
+    printf("\n");
+    
 
     /*
      * Cleanup
