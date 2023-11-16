@@ -63,10 +63,13 @@ void copy_results_to_array(uint32_t *res, double* array ,uint32_t sample_cnt, ui
 
 
             for (uint32_t j = 0; j < sets_per_sample; ++j) {
-                array[j] = 1.0*(res[i * sets_per_sample + j] - array[j])/(i+1);
+                array[j] = (1.0*(res[i * sets_per_sample + j] - array[j]))/(i+1);
             }
 
         }
+		for(int i=0;i<sets_per_sample;i++){
+			array[i] *= sample_cnt;
+		}
 
 
 }
