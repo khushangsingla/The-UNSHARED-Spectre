@@ -28,8 +28,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cachesc.h>
+#include <math.h>
 
 
+#define TRIM_HIGH_PERCENTAGE 0.05
 /*
  * Configure side-channel attack
  */
@@ -54,19 +56,38 @@
 // local functions
 void usage(const char *prog);
 
+uint32_t cmpfunc (const void * a, const void * b) {
+   return ( *(uint32_t*)a - *(uint32_t*)b );
+}
+
+
 void copy_results_to_array(uint32_t *res, double* array ,uint32_t sample_cnt, uint32_t sets_per_sample)
 {
+        // printf("sam %d \n", sample_cnt);
+        // printf(" out %d \n",  );
+        for (uint32_t j = 0; j < sets_per_sample; ++j)
+        {   
 
+            uint32_t temp_array[sample_cnt];
+            for (uint32_t i = 0; i < sample_cnt; ++i) 
+            {
 
+                temp_array[i] = res[i * sets_per_sample + j];
+                
 
-        for (uint32_t i = 0; i < sample_cnt; ++i) {
+            }
+            qsort(temp_array, sample_cnt, sizeof(uint32_t), cmpfunc);
 
-
-            for (uint32_t j = 0; j < sets_per_sample; ++j) {
-                array[j] = 1.0*(res[i * sets_per_sample + j] - array[j])/(i+1);
+            
+            for(int i = 0; i < (int)round((1-TRIM_HIGH_PERCENTAGE)*sample_cnt); i++)
+            {   
+        
+                array[j] += (temp_array[i] - array[j])/(i+1);
             }
 
+     
         }
+        
 
 
 }
