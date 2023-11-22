@@ -53,6 +53,9 @@
 // #define MSRMTS_PER_SAMPLE L2_SETS
 // #define PRIME prime_rev
 
+#define TRIM_HIGH 0.05
+#define TRIM_LOW 0
+
 // local functions
 void usage(const char *prog);
 
@@ -140,6 +143,9 @@ int main(int argc, char **argv) {
     /*
      * Make baseline measurements for normalisation (optional)
      */
+    double *baseline = NULL;
+    uint32_t lower_bound = sample_cnt * TRIM_LOW;
+    uint32_t upper_bound = sample_cnt * (1 - TRIM_HIGH);
     #ifdef NORMALIZE
     for (i = 0; i < sample_cnt; ++i) {
         curr_head = PRIME(curr_head);
@@ -153,6 +159,18 @@ int main(int argc, char **argv) {
     PRINT_LINE("Output cache set access baseline data\n");
     print_results(res, sample_cnt, MSRMTS_PER_SAMPLE);
 
+    baseline = (double *)malloc(MSRMTS_PER_SAMPLE * sizeof(double));
+    memset(baseline, 0, MSRMTS_PER_SAMPLE * sizeof(double));
+
+    for (uint32_t i = 0; i < MSRMTS_PER_SAMPLE; ++i)
+    {
+        for (uint32_t j = lower_bound; j < upper_bound; ++j)
+        {
+            baseline[i] += res[j * MSRMTS_PER_SAMPLE + i];
+        }
+
+        baseline[i] /= (upper_bound - lower_bound);
+    }
     // reset changes
     memset(res, 0, res_size);
     curr_res    = res;
@@ -189,6 +207,24 @@ int main(int argc, char **argv) {
     double* array = (double*)malloc(sizeof(double)*MSRMTS_PER_SAMPLE);
     copy_results_to_array(res, array ,sample_cnt, MSRMTS_PER_SAMPLE);
 
+    double *avg = (double *)malloc(MSRMTS_PER_SAMPLE * sizeof(double));
+    memset(avg, 0, MSRMTS_PER_SAMPLE * sizeof(double));
+
+    for (uint32_t i = 0; i < MSRMTS_PER_SAMPLE; ++i)
+    {
+        for (uint32_t j = lower_bound; j < upper_bound; ++j)
+        {
+            avg[i] += res[j * MSRMTS_PER_SAMPLE + i];
+        }
+
+        avg[i] /= (upper_bound - lower_bound);
+    }
+
+    printf("\n\n*****Average: ");
+    for(int i=0;i<MSRMTS_PER_SAMPLE;i++){
+        printf("%f ",avg[i]);
+    }
+    printf(" *****\n\n\n");
 
     //print array or do whatever you want
 
@@ -196,8 +232,17 @@ int main(int argc, char **argv) {
     {
         printf("%f ",array[i]);
     }
-    printf("\n");
+    printf("\n\n");
     
+    #ifdef NORMALIZE
+        printf("\n\n*****Normalized: ");
+        for (int i = 0; i < MSRMTS_PER_SAMPLE; i++)
+        {
+            printf("%f ",array[i] - baseline[i]);
+        }
+        printf(" *****\n\n\n");
+    #endif
+
 
     /*
      * Cleanup
