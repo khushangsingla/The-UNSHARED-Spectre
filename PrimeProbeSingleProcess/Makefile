@@ -34,7 +34,7 @@ LDLIBS  += -lcrypto
 ## Argon2
 CFLAGS  += -I$(ARGON_INCL)
 LDFLAGS += -L$(ARGON_LIB) -static
-LDLIBS  += -largon2 -pthread
+LDLIBS  += -largon2 -pthread -lm
 
 CC	:= gcc
 OUT := spectre-attacker-victim single-eviction
