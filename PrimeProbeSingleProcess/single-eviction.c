@@ -212,15 +212,22 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < MSRMTS_PER_SAMPLE; i++)
     {
-        printf("%f ",array[i]);
+        printf("%lf ", array[i]);
     }
     printf("\n\n");
     
     #ifdef NORMALIZE
+        printf("\n\n*****Baseline: ");
+        for (int i = 0; i < MSRMTS_PER_SAMPLE; i++)
+        {
+            printf("%lf ",baseline[i]);
+        }
+        printf(" *****\n\n\n");
+
         printf("\n\n*****Normalized: ");
         for (int i = 0; i < MSRMTS_PER_SAMPLE; i++)
         {
-            printf("%f ",array[i] - baseline[i]);
+            printf("%lf ",avg[i] - baseline[i]);
         }
         printf(" *****\n\n\n");
     #endif
