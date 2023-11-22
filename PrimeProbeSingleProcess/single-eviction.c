@@ -51,6 +51,9 @@
 // #define MSRMTS_PER_SAMPLE L2_SETS
 // #define PRIME prime_rev
 
+#define TRIM_HIGH 0.05
+#define TRIM_LOW 0
+
 // local functions
 void usage(const char *prog);
 
@@ -171,6 +174,28 @@ int main(int argc, char **argv) {
     double* array = (double*)malloc(sizeof(double)*MSRMTS_PER_SAMPLE);
     copy_results_to_array(res, array ,sample_cnt, MSRMTS_PER_SAMPLE);
 
+
+    uint32_t lower_bound = sample_cnt * TRIM_LOW;
+    uint32_t upper_bound = sample_cnt * (1 - TRIM_HIGH);
+
+    double *avg = (double *)malloc(MSRMTS_PER_SAMPLE * sizeof(double));
+    memset(avg, 0, MSRMTS_PER_SAMPLE * sizeof(double));
+
+    for (uint32_t i = 0; i < MSRMTS_PER_SAMPLE; ++i)
+    {
+        for (uint32_t j = lower_bound; j < upper_bound; ++j)
+        {
+            avg[i] += res[j * MSRMTS_PER_SAMPLE + i];
+        }
+
+        avg[i] /= (upper_bound - lower_bound);
+    }
+
+    printf("*****Average: ");
+    for(int i=0;i<MSRMTS_PER_SAMPLE;i++){
+        printf("%f ",avg[i]);
+    }
+    printf(" *****\n");
 
     //print array or do whatever you want
 
