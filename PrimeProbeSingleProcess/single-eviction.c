@@ -68,31 +68,27 @@ void copy_results_to_array(uint32_t *res, double* array ,uint32_t sample_cnt, ui
 {
         // printf("sam %d \n", sample_cnt);
         // printf(" out %d \n",  );
-        for (uint32_t j = 0; j < sets_per_sample; ++j)
-        {   
+    for (uint32_t j = 0; j < sets_per_sample; ++j)
+    {   
 
-            uint32_t temp_array[sample_cnt];
-            for (uint32_t i = 0; i < sample_cnt; ++i) 
-            {
+        uint32_t temp_array[sample_cnt];
+        for (uint32_t i = 0; i < sample_cnt; ++i) 
+        {
 
-                temp_array[i] = res[i * sets_per_sample + j];
-                
-
-            }
-            qsort(temp_array, sample_cnt, sizeof(uint32_t), cmpfunc);
-
+            temp_array[i] = res[i * sets_per_sample + j];
             
-            for(int i = 0; i < (int)round((1-TRIM_HIGH_PERCENTAGE)*sample_cnt); i++)
-            {   
-        
-                array[j] += (temp_array[i] - array[j])/(i+1);
-            }
 
-     
         }
+        qsort(temp_array, sample_cnt, sizeof(uint32_t), cmpfunc);
+
         
+        for(int i = 0; i < (int)round((1-TRIM_HIGH_PERCENTAGE)*sample_cnt); i++)
+        {   
+    
+            array[j] += (temp_array[i] - array[j])/(i+1);
+        }
 
-
+    }
 }
 
 int main(int argc, char **argv) {
@@ -161,16 +157,7 @@ int main(int argc, char **argv) {
 
     baseline = (double *)malloc(MSRMTS_PER_SAMPLE * sizeof(double));
     memset(baseline, 0, MSRMTS_PER_SAMPLE * sizeof(double));
-
-    for (uint32_t i = 0; i < MSRMTS_PER_SAMPLE; ++i)
-    {
-        for (uint32_t j = lower_bound; j < upper_bound; ++j)
-        {
-            baseline[i] += res[j * MSRMTS_PER_SAMPLE + i];
-        }
-
-        baseline[i] /= (upper_bound - lower_bound);
-    }
+    copy_results_to_array(res, baseline ,sample_cnt, MSRMTS_PER_SAMPLE);
     // reset changes
     memset(res, 0, res_size);
     curr_res    = res;
@@ -204,21 +191,10 @@ int main(int argc, char **argv) {
      */
     PRINT_LINE("Output cache attack data\n");
     print_results(res, sample_cnt, MSRMTS_PER_SAMPLE);
-    double* array = (double*)malloc(sizeof(double)*MSRMTS_PER_SAMPLE);
-    copy_results_to_array(res, array ,sample_cnt, MSRMTS_PER_SAMPLE);
-
-    double *avg = (double *)malloc(MSRMTS_PER_SAMPLE * sizeof(double));
+    double* avg = (double*)malloc(sizeof(double)*MSRMTS_PER_SAMPLE);
     memset(avg, 0, MSRMTS_PER_SAMPLE * sizeof(double));
+    copy_results_to_array(res, avg ,sample_cnt, MSRMTS_PER_SAMPLE);
 
-    for (uint32_t i = 0; i < MSRMTS_PER_SAMPLE; ++i)
-    {
-        for (uint32_t j = lower_bound; j < upper_bound; ++j)
-        {
-            avg[i] += res[j * MSRMTS_PER_SAMPLE + i];
-        }
-
-        avg[i] /= (upper_bound - lower_bound);
-    }
 
     printf("\n\n*****Average: ");
     for(int i=0;i<MSRMTS_PER_SAMPLE;i++){
@@ -227,12 +203,6 @@ int main(int argc, char **argv) {
     printf(" *****\n\n\n");
 
     //print array or do whatever you want
-
-    for (int i = 0; i < MSRMTS_PER_SAMPLE; i++)
-    {
-        printf("%lf ", array[i]);
-    }
-    printf("\n\n");
     
     #ifdef NORMALIZE
         printf("\n\n*****Baseline: ");
