@@ -35,11 +35,11 @@ probe_asm:
 	shl rcx, 12
 	add rcx, rbx
 	
-	mfence
+	lfence
 	rdtsc
 	mov r15, rax
 	mov rax, [rdi+rcx]
-	mfence
+	lfence
 	rdtsc
 	sub r15, rax
 
@@ -52,11 +52,11 @@ probe_asm:
 	shl rcx, 12
 	add rcx, rbx
 	
-	mfence
+	lfence
 	rdtsc
 	mov r8, rax
 	mov rax, [rdi+rcx]
-	mfence
+	lfence
 	rdtsc
 	sub r8, rax
 
@@ -69,11 +69,11 @@ probe_asm:
 	shl rcx, 12
 	add rcx, rbx
 	
-	mfence
+	lfence
 	rdtsc
 	mov r9, rax
 	mov rax, [rdi+rcx]
-	mfence
+	lfence
 	rdtsc
 	sub r9, rax
 
@@ -86,11 +86,11 @@ probe_asm:
 	shl rcx, 12
 	add rcx, rbx
 	
-	mfence
+	lfence
 	rdtsc
 	mov r10, rax
 	mov rax, [rdi+rcx]
-	mfence
+	lfence
 	rdtsc
 	sub r10, rax
 
@@ -103,11 +103,11 @@ probe_asm:
 	shl rcx, 12
 	add rcx, rbx
 	
-	mfence
+	lfence
 	rdtsc
 	mov r11, rax
 	mov rax, [rdi+rcx]
-	mfence
+	lfence
 	rdtsc
 	sub r11, rax
 
@@ -120,11 +120,11 @@ probe_asm:
 	shl rcx, 12
 	add rcx, rbx
 	
-	mfence
+	lfence
 	rdtsc
 	mov r12, rax
 	mov rax, [rdi+rcx]
-	mfence
+	lfence
 	rdtsc
 	sub r12, rax
 
@@ -137,11 +137,11 @@ probe_asm:
 	shl rcx, 12
 	add rcx, rbx
 	
-	mfence
+	lfence
 	rdtsc
 	mov r13, rax
 	mov rax, [rdi+rcx]
-	mfence
+	lfence
 	rdtsc
 	sub r13, rax
 
@@ -154,11 +154,11 @@ probe_asm:
 	shl rcx, 12
 	add rcx, rbx
 	
-	mfence
+	lfence
 	rdtsc
 	mov r14, rax
 	mov rax, [rdi+rcx]
-	mfence
+	lfence
 	rdtsc
 	sub r14, rax
 

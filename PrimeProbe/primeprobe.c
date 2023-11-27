@@ -16,16 +16,15 @@ char* attacker_array;
 char* victim_array;
 
 void prime_cache_set(int n){
-	for(int i=0; i<PRIMING_ITERS; ++i){
-		temp += attacker_array[4096*(( 192 + (n>>6))%ATTACKER_ARRAY_SIZE) + n];
-		temp += attacker_array[4096*(( 237 + (n>>6))%ATTACKER_ARRAY_SIZE) + n];
-		temp += attacker_array[4096*(( 738 + (n>>6))%ATTACKER_ARRAY_SIZE) + n];
-		temp += attacker_array[4096*(( 963 + (n>>6))%ATTACKER_ARRAY_SIZE) + n];
-		temp += attacker_array[4096*(( 868 + (n>>6))%ATTACKER_ARRAY_SIZE) + n];
-		temp += attacker_array[4096*(( 792 + (n>>6))%ATTACKER_ARRAY_SIZE) + n];
-		temp += attacker_array[4096*(( 479 + (n>>6))%ATTACKER_ARRAY_SIZE) + n];
-		temp += attacker_array[4096*(( 592 + (n>>6))%ATTACKER_ARRAY_SIZE) + n];
-	}
+		attacker_array[4096*(( 192 + (n>>6))%1024) + n];
+		attacker_array[4096*(( 237 + (n>>6))%1024) + n];
+		attacker_array[4096*(( 738 + (n>>6))%1024) + n];
+		attacker_array[4096*(( 963 + (n>>6))%1024) + n];
+		attacker_array[4096*(( 868 + (n>>6))%1024) + n];
+		attacker_array[4096*(( 792 + (n>>6))%1024) + n];
+		attacker_array[4096*(( 479 + (n>>6))%1024) + n];
+		attacker_array[4096*(( 592 + (n>>6))%1024) + n];
+		asm("mfence");
 }
 
 unsigned long long rdtsc() {
@@ -135,13 +134,23 @@ int main(){
 	printf("Attacker array: %p %lu\n", attacker_array, ((unsigned long)attacker_array)%4096 );
 	printf("Victim array: %p %lu\n", victim_array, ((unsigned long)victim_array)%4096 );
 
-	int n = 0xabc;
-	prime_cache_set(n);
-	temp = victim_array[(((n>>6)+1)<<6)];
-	long long times[8];
-	probe_asm(attacker_array, times, n);
-	for(int i=0;i<8;i++){
-		printf("%lld ",-1*times[i]);
+	int n1 = 0;
+	int n2 = 0xabc;
+	long long times[16];
+	probe_asm(&attacker_array[0], times, n1);
+	probe_asm(&attacker_array[0], times, n2);
+	for(int i=0;i<100000;i++){
+		prime_cache_set(n1);
+		prime_cache_set(n2);
+		victim_array[n1];
+		probe_asm(&attacker_array[0], times, n1);
+		probe_asm(&attacker_array[0], times+8, n2);
+		for(int i=0;i<8;i++){
+			fprintf(stderr,"%lld ",-1*times[i]);
+		}
+		for(int i=0;i<8;i++){
+			fprintf(stderr,"%lld ",-1*times[i+8]);
+		}
+		fprintf(stderr,"\n");
 	}
-	printf("\n");
 }
