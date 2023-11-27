@@ -1,6 +1,13 @@
+\subsection{Spectre attack}
+
 Original proof of concept code has a victim function in which transient instructions are exploited by attacker to retrieve secret data. The function is as follows: \\
 \texttt{void victim\_function(size\_t x) \{ }\\
 \indent  \texttt{if (x < array1\_size) \{} \\
 \indent	\indent	\texttt{temp \&= array2[array1[x] * 512];} \\
-\texttt{	\} }\\
+\} 
+
 \indent Branch predictor is initally mistrained to always predict that the \texttt{if} statement is true by providing valid inputs of \texttt{x}. Then attacker provides an invalid input of \texttt{x} to the victim function. This causes the branch predictor to mispredict and speculatively execute the \texttt{if} statement. The transient instruction \texttt{temp \&= array2[array1[x] * 512]} brings the data at \texttt{array2[array1[x] * 512]} in the cache hierarchy. Attacker then accesses \texttt{array2} indices in a loop and measures the time taken to access each index. Note that \texttt{array2} is shared while \texttt{array1} is not. If the time taken to access an index is less than a threshold, it means that the data at that index was brought in the cache hierarchy by the transient instruction. This way attacker can retrieve the secret data. \\
+\indent Important thing to consider while carrying out spectre attack is to not have speculative instructions before we call victim functions. This is because the processor will speculate even these instructions before it has chance to specukate the instructions in victim function. This leads to lesser accuracy in the attack.
+\subsection{Prime and Probe attack}
+Cache sets accessed by victim can be detected using prime and probe \cite{primeprobe}. In this attack, attacker first primes the cache by accessing a set of cache lines. Then attacker waits for the victim to access the same set of cache lines. Attacker then probes the cache to see which cache lines are still in the cache. The cache lines which are not present in the cache are the ones accessed by the victim. \\
+\indent A linked list is used to prime the cache. After victim accesses a cache set, the cache is probed using the same linked list. Linked list is used to do prime and probe to avoid the use of memory fences.
