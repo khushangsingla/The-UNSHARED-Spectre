@@ -28,6 +28,7 @@ In this project, we target to implement spectre without use of shared memory.
 - The value of malicious_x may need to be changes in attacker.c
 - After adding submodule, PrimeProbeSingleProcess/CacheSC/src/device_conf.h may need updates based on device configuration
 
+##### Commands to run for running the experiments
 - SharedMemorySingleProcess
     
     Spectre POC with modification for various analysis
