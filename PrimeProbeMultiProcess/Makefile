@@ -37,7 +37,7 @@ LDFLAGS += -L$(ARGON_LIB) -static
 LDLIBS  += -largon2 -pthread -lm
 
 CC	:= gcc
-OUT := spectre-attacker-victim single-eviction attacker victim
+OUT := attacker victim runner
 
 ifneq ($(NORMALIZE),)
     CFLAGS += -DNORMALIZE=$(NORMALIZE)
@@ -54,6 +54,3 @@ clean:
 
 $(OUT): %: %.c
 	$(CC) $(CFLAGS) -o $@ $(@:=.c) $(LDFLAGS) $(LDLIBS)
-
-runner: attacker victim
-	gcc -o victim victim.c

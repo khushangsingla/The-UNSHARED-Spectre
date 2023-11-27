@@ -35,8 +35,9 @@ int main() {
     for (int i = 0; i < sizeof(array2); i++)
 		array2[i] = 1;
 	size_t malicious_x=(size_t)(secret-(char*)array1);
-	printf("%ld\n",(void*)secret-(void*)array1);
-    fprintf(stderr,"The target is: %d\n",((int)(&array2[array1[malicious_x+1]*64])>>6)&0b111111);
+	// printf("%ld\n",(void*)secret-(void*)array1);
+    fprintf(stderr,"For input: %ld, The target is: %d\n",malicious_x,((int)(&array2[array1[malicious_x]*64])>>6)&0b111111);
+    fprintf(stderr,"For input: %ld, The target is: %d\n",malicious_x+1,((int)(&array2[array1[malicious_x+1]*64])>>6)&0b111111);
 	size_t x;
 	while(1){
 		read(0,&x,8);
