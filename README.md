@@ -24,6 +24,10 @@ In this project, we target to implement spectre without use of shared memory.
 
 ### Steps to run the experiments
 
+- The value of Threshold may need change in attacker codes
+- The value of malicious_x may need to be changes in attacker.c
+- After adding submodule, PrimeProbeSingleProcess/CacheSC/src/device_conf.h may need updates based on device configuration
+
 - SharedMemorySingleProcess
     
     Spectre POC with modification for various analysis
@@ -35,9 +39,10 @@ In this project, we target to implement spectre without use of shared memory.
 - SharedMemoryMultiProcess
     
     Spectre used as a Covert channel
-    - `cd SharedMemoryMultiProcess`
+    - `cd SharedMemoryMultiProcesses`
     - `make`
     - `./runner`
+
 
 - PrimeProbe - Failed Attempt to prime probe
 - PrimeProbeSingleProcess
@@ -60,6 +65,7 @@ In this project, we target to implement spectre without use of shared memory.
     - `NORMALIZE=1 make`
     - `./runner`
     
+	The value of malicious_x may need to be changes in attacker.c
 
 
 <br/>
