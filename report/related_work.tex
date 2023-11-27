@@ -1,0 +1,6 @@
+Original proof of concept code has a victim function in which transient instructions are exploited by attacker to retrieve secret data. The function is as follows: \\
+\texttt{void victim\_function(size\_t x) \{ }\\
+\indent  \texttt{if (x < array1\_size) \{} \\
+\indent	\indent	\texttt{temp \&= array2[array1[x] * 512];} \\
+\texttt{	\} }\\
+\indent Branch predictor is initally mistrained to always predict that the \texttt{if} statement is true by providing valid inputs of \texttt{x}. Then attacker provides an invalid input of \texttt{x} to the victim function. This causes the branch predictor to mispredict and speculatively execute the \texttt{if} statement. The transient instruction \texttt{temp \&= array2[array1[x] * 512]} brings the data at \texttt{array2[array1[x] * 512]} in the cache hierarchy. Attacker then accesses \texttt{array2} indices in a loop and measures the time taken to access each index. Note that \texttt{array2} is shared while \texttt{array1} is not. If the time taken to access an index is less than a threshold, it means that the data at that index was brought in the cache hierarchy by the transient instruction. This way attacker can retrieve the secret data. \\
